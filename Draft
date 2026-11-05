@@ -65,13 +65,3 @@ int binarySearch(const std::vector<T>& a, const T& target, Compare cmp = Compare
     }
     return -1;
 }
-
-std::mutex admitMutex; //ensures that only one process will find that a room is free (basically a shared lock)
-
-template <typename T, typename IsFree, typename MarkOccupied>
-TreeNode<T>* assignRoom(TreeNode<T>* root, IsFree isFree, MarkOccupied markOccupied) {
-    std::lock_guard<std::mutex> lock(admitMutex); //locks when the function is entered, automatically unlocks when the process is done
-    TreeNode<T>* node = DFSfind(root, isFree);    //DFS for the first free room
-    if (node) markOccupied(node->data);           //mark the room as occupied
-    return node;                                  //assigned room or nullptr
-}
