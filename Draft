@@ -12,7 +12,6 @@
 struct Unit {
     std::string name; //unit name (departments, wards, rooms)
     int roomNum = -1; //room number -1 is not a room
-    bool occupied = false; //checks if it is occcupied or not
 };
 
 //Tree node
