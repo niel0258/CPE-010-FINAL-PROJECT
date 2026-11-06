@@ -2,6 +2,7 @@
   <!-- Repository Badges -->
   <img src="https://img.shields.io/badge/Course-CPE%20010-blue?style=flat-square" alt="Course Name">
   <img src="https://img.shields.io/badge/Section-CPE21S2-orange?style=flat-square" alt="Term">
+   <img src="https://img.shields.io/badge/Group-6-success?style=flat-square" alt="Status">
 
   <br />
   <br />
