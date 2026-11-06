@@ -7,9 +7,10 @@
 
 <br /><br />
 
-# 🏥 MediGuide
-### `> Find the way. Skip the queue.`
-**Hospital guidance and department referral, built in C++.**
+# 🧭 MediCompass
+### `> Find your way to any hospital location.`
+**Hospital Directional Guidance System, built in C++.**
+*Business process emulated: Hospital Guidance and Department Referral.*
 
 <br />
 
@@ -29,8 +30,9 @@
 <br /><br />
 
 <!-- Quick facts -->
-<img src="https://img.shields.io/badge/Departments-12-brightgreen?style=flat-square" alt="Departments">
-<img src="https://img.shields.io/badge/Interface-Text%20UI-lightgrey?style=flat-square" alt="Interface">
+<img src="https://img.shields.io/badge/Locations-30-brightgreen?style=flat-square" alt="Locations">
+<img src="https://img.shields.io/badge/Floors-3-yellow?style=flat-square" alt="Floors">
+<img src="https://img.shields.io/badge/Interface-Console%20UI-lightgrey?style=flat-square" alt="Interface">
 <img src="https://img.shields.io/badge/Data-In--memory-blue?style=flat-square" alt="Data">
 
 </div>
@@ -38,14 +40,14 @@
 <br />
 
 <!-- Add a screenshot or GIF of the program running here, e.g.: -->
-<!-- <p align="center"><img src="docs/demo.gif" alt="MediGuide demo" width="700"></p> -->
+<!-- <p align="center"><img src="docs/demo.gif" alt="MediCompass demo" width="700"></p> -->
 
 ## 📖 Overview
-At a hospital front desk, every visitor asks the staff for directions. This causes long queues, only one route is given, and different staff give different answers.
+At a hospital front desk, every visitor asks the staff for directions. This causes long queues, different staff give different routes, and only one person can be helped at a time.
 
-**MediGuide** emulates the *Patient Guidance and Department Referral Process*. The program prompts the user for a department, verifies that it exists using a hash map, and then calculates routes from the front desk based on the user's preference:
-* 🧭 **All Paths:** Traverses the graph using Depth-First Search (DFS) and sorts the paths using Quick Sort.
-* ⚡ **Optimal Path:** Calculates and displays the most efficient route using Dijkstra's Algorithm.
+**MediCompass** emulates the *Hospital Guidance and Department Referral Process* with a console program. Starting from the **Main entrance**, the user types the name of a location (not case-sensitive). The program verifies that it exists using a hash map, then shows step-by-step walking directions based on the user's choice:
+* 🧭 **All Possible Routes:** Traverses the graph using Depth-First Search (DFS) and sorts the routes by distance using Quick Sort, shortest first.
+* ⚡ **Shortest Route:** Calculates and displays the most efficient route using Dijkstra's Algorithm.
 
 ---
 
@@ -53,12 +55,14 @@ At a hospital front desk, every visitor asks the staff for directions. This caus
 
 | | Feature | How |
 | :---: | :--- | :--- |
-| 🔎 | **Department Lookup** | Hash Map: fast search by code or name |
-| 🗺️ | **Hospital Mapping** | Weighted graph of 12 departments; edges are corridor distances in meters |
-| ⚡ | **Optimal Route** | Dijkstra's Algorithm with a priority queue: the single shortest path |
-| 🧭 | **Alternative Routes** | DFS finds all possible routes, then Quick Sort orders them by distance |
-| ⛔ | **Restricted Areas** | Restricted departments cannot be a destination, and routes never pass through them |
-| 🛡️ | **Input Handling** | Unknown departments are reported ("Department code or name is not found") and the user is asked again |
+| 🖥️ | **Console Interface** | Title screen and a main menu (Find Location, Browse Locations, How to use the system, Exit) controlled with the arrow keys, Enter and Esc |
+| 🔎 | **Location Lookup** | Hash map: fast search by location name, not case-sensitive. Shows the name and floor of the location found |
+| 🗺️ | **Hospital Mapping** | Weighted graph of 30 locations across 3 floors; edges are corridor distances in meters |
+| ⚡ | **Shortest Route** | Dijkstra's Algorithm with a priority queue: the single shortest path |
+| 🧭 | **All Possible Routes** | DFS finds every route without looping, then Quick Sort orders them by distance |
+| 📝 | **Step-by-Step Directions** | Each route lists every walking step in meters, the total distance, and the search time in milliseconds |
+| ⛔ | **Restricted Areas** | Restricted locations (nurse stations, ICU, operating room, recovery room) cannot be a destination, and routes never pass through them |
+| 🛡️ | **Input Handling** | Unknown locations are reported and the user can try again or type `back` to return |
 
 ---
 
@@ -66,33 +70,146 @@ At a hospital front desk, every visitor asks the staff for directions. This caus
 
 | Topic | Used for | Time complexity |
 | :--- | :--- | :--- |
-| 🟣 Hash map | Department lookup by code or name | O(1) average, O(n) worst |
+| 🟣 Hash map (`unordered_map`) | Location lookup by name | O(1) average, O(n) worst |
 | 🟢 Weighted graph (adjacency list) | Hospital map | Add edge O(1) |
-| 🔵 Dijkstra + priority queue | Shortest route | O((V + E) log V) |
-| 🟠 Depth-first search (DFS) | Finding all possible routes | O(V + E) per traversal |
+| 🔵 Dijkstra + priority queue | Shortest route | O((V + E) log E) |
+| 🟠 Depth-first search (DFS) | Listing all possible routes | Grows with the number of routes (exponential in the worst case) |
 | 🟪 Quick Sort | Sorting routes by distance | O(n log n) average, O(n²) worst |
 
-*V = number of departments, E = number of corridors, n = number of routes.*
+*V = number of locations, E = number of corridors, n = number of routes.*
 
 ---
 
+## 🔄 How It Works
 
+```mermaid
+flowchart TD
+    A([Start]) --> B[/Print title screen and introduction/]
+    B --> C{User wants to exit?}
+    C -- Yes --> Z([End])
+    C -- No --> D[/Prompt and input location name/]
+    D --> E[Search hash map for the room]
+    E --> F{Location exists?}
+    F -- No --> G[/Print: location does not exist/] --> D
+    F -- Yes --> H{User wants to see all paths?}
+    H -- Yes --> I[Traverse graph using DFS]
+    I --> J[Keep track of all paths]
+    J --> K[Sort paths using Quick Sort]
+    H -- No --> L[Traverse using Dijkstra's Algorithm]
+    L --> M[Keep track of the optimal path]
+    K --> N[/Print the paths/]
+    M --> N
+    N --> O[/Wait for user to continue/] --> C
+
+    classDef term fill:#1F2A44,color:#ffffff,stroke:#1F2A44
+    classDef io fill:#FFE082,color:#222222,stroke:#F9A825
+    classDef algo fill:#BBDEFB,color:#0D47A1,stroke:#1976D2
+    classDef decision fill:#E1BEE7,color:#4A148C,stroke:#8E24AA
+    classDef bad fill:#FFCDD2,color:#B71C1C,stroke:#E53935
+    class A,Z term
+    class B,D,N,O io
+    class E,I,J,K,L,M algo
+    class C,F,H decision
+    class G bad
+```
+
+1. The program starts and shows the title screen and introduction.
+2. If the user chooses to exit, the program ends. Otherwise, it asks for a location name.
+3. The program searches the hash map. If the location does not exist, it says so and asks again.
+4. If it exists, the user chooses the shortest route or all possible routes.
+5. **All possible routes:** DFS finds every route, and Quick Sort orders them by distance.
+6. **Shortest route:** Dijkstra's Algorithm finds the single best path.
+7. The program prints the step-by-step directions and waits for the user to continue.
+
+---
+
+## 🖥️ Sample Run
+
+A search for **Pharmacy**, choosing the **shortest route**:
+
+```text
+Type a location name (example: Pharmacy), or 'back' to return: Pharmacy
+
+LOCATION FOUND
+--------------------------------------------------------------------------
+  Name  : Pharmacy
+  Floor : Ground floor
+--------------------------------------------------------------------------
+
+Which route do you want?
+  > Shortest route
+    All possible routes
+  [1/2]  Up/Down = Move, Enter = select, Esc = back
+
+HOSPITAL NAVIGATION RESULT - SHORTEST ROUTE
+==============================================================================
+Starting Point : Main entrance
+Destination    : Pharmacy (Ground floor)
+
+Recommended Route:
+  1. Start at the Main entrance.
+  2. Walk 10 meters from Main entrance to Lobby.
+  3. Walk 12 meters from Lobby to Registration.
+  4. Walk 8 meters from Registration to Cashier.
+  5. Walk 10 meters from Cashier to Pharmacy.
+  6. You have arrived at Pharmacy.
+
+Total Distance : 40 meters
+==============================================================================
+
+  Search complete (0.040 ms).
+
+Search for another location? (y/n):
+```
+
+<details>
+<summary>Choosing <b>All possible routes</b> instead (first two of 10 routes shown)</summary>
+
+```text
+HOSPITAL NAVIGATION RESULT - ALL AVAILABLE ROUTES
+==============================================================================
+Starting Point : Main entrance
+Destination    : Pharmacy (Ground floor)
+Routes found   : 10 (shortest first)
+------------------------------------------------------------------------------
+ROUTE 1  (Shortest) - 40 meters
+  1. Start at the Main entrance.
+  2. Walk 10 meters from Main entrance to Lobby.
+  3. Walk 12 meters from Lobby to Registration.
+  4. Walk 8 meters from Registration to Cashier.
+  5. Walk 10 meters from Cashier to Pharmacy.
+  6. You have arrived at Pharmacy.
+------------------------------------------------------------------------------
+ROUTE 2 - 80 meters
+  1. Start at the Main entrance.
+  2. Walk 15 meters from Main entrance to Elevator G.
+  3. Walk 15 meters from Elevator G to Emergency.
+  4. Walk 20 meters from Emergency to Lobby.
+  5. Walk 12 meters from Lobby to Registration.
+  6. Walk 8 meters from Registration to Cashier.
+  7. Walk 10 meters from Cashier to Pharmacy.
+  8. You have arrived at Pharmacy.
+```
+
+</details>
+
+---
 
 ## 📂 Project Files
 
 | File | Description |
 | :--- | :--- |
 | `main.cpp` | Main program execution. |
-| `graph.h` | Graph data structure and traversal logic. |
-| `hospital_header.h` | Hospital-specific definitions or data. |
+| `graph.h` | Graph data structure (adjacency list). |
+| `hospital_header.h` | Hospital layout: locations, floors, restricted flags, corridors and the name lookup. |
 | `interface.h` | User interface and console outputs. |
-| `routes.h` | Pathfinding algorithms and route management. |
+| `routes.h` | Pathfinding algorithms (DFS, Dijkstra) and Quick Sort. |
 
 ---
 
 ## ⚠️ Scope and Limitations
-* Predefined hospital layout of 12 departments (no adding departments or corridors without editing the code)
-* Text user interface only (no GUI or 3D map)
+* Predefined hospital layout of 30 locations (no adding locations or corridors without editing the code)
+* Console interface only (no GUI or 3D map)
 * Data is kept in memory only; closing the program deletes all data
 * Single user; no networking, databases, real patient data, billing or appointments
 
@@ -101,12 +218,12 @@ At a hospital front desk, every visitor asks the staff for directions. This caus
 ## 👥 Team Composition
 **CPE21S2 / Group 6**
 
-* **Condino, Niel Vincent**
+* **Condino, Niel Vincent**: Project Leader
 * **Esguerra, Paula**
 * **Estorco, Clint Hoven**
 * **Libo-on, Gian Carlo**
-* **Lopez, Andrei Dion**
-* **Mendoza, Nathaniel**
+* **Lopez, Andrei Dion**: Input and Display Interface
+* **Mendoza, Nathaniel**: Output and Display Interface
 
 ---
 
