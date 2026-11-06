@@ -93,7 +93,7 @@ inline void enableAnsiOutput() {
     }
 #endif
 }
-
+f
 // Clears screen 
 inline void clearScreen() {
     if (!isInteractiveTerminal()) return;
@@ -271,10 +271,10 @@ inline void printLine(char c = '=', int n = 56) {
 
 inline void printFrontDisplay() {
     printLine();
-    std::cout << "                      Welcome to Hospital\n"
-              << "        This is a Directional Guidance System\n";
+    std::cout << "              WELCOME TO THE HOSPITAL\n"
+              << "          Hospital Directional Guidance System\n";
     printLine();
-    std::cout << "  Find your path to any hospital location.\n";
+    std::cout << "          Find your way to any hospital location.\n";
     printLine();
 }
 
@@ -532,7 +532,7 @@ inline void runInterface(const Hospital& hospital) {
     bool running = true;
     while (running && !inputClosed()) {
         clearScreen();
-        int choice = arrowMenu("\n=== MAIN MENU ===",
+        int choice = arrowMenu("\n======= MAIN MENU =======",
                                {"Find Location", "Browse Locations", "How to use the system", "Exit"});
 
         switch (choice) {
