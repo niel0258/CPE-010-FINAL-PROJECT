@@ -49,6 +49,11 @@ struct Timer {
 
 const size_t MAX_ROUTES_SHOWN = 50;
 
+inline int& startLocation() {
+    static int id = -1;
+    return id;
+}
+
 /*  =============================================== INPUT  =============================================== */
 
 inline std::string trim(const std::string& text) {
@@ -260,6 +265,7 @@ inline void printFrontDisplay() {
 inline void printHelp() {
     std::cout << "\n======================= HOW TO USE THE SYSTEM ===========================\n\n"
               << "  Use the Up/Down arrow keys to move, Enter to select, Esc to go back.\n"
+              << "  Set starting location : Choose where you are now (default: the entrance).\n"
               << "  Find Location    : Type the location NAME (example: Pharmacy). Type 'back' to return.\n"
               << "  Browse Locations : Scroll through every location and pick one.\n"
               << "  Then choose the shortest route to that location, or all routes, and follow the steps.\n"
@@ -326,7 +332,7 @@ inline void printRouteSteps(const Hospital& hospital, const Route& route) {
 inline void printShortestRoute(const Hospital& hospital, int destId, const Route& route) {
     std::cout << "\nHOSPITAL NAVIGATION RESULT - SHORTEST ROUTE\n";
     printLine();
-    std::cout << "Starting Point : " << hospital.nameOf(hospital.entranceId()) << "\n"
+    std::cout << "Starting Point : " << hospital.nameOf(route.stops.front()) << "\n"
               << "Destination    : " << hospital.nameOf(destId)
               << " (" << hospital.floorName(destId) << ")\n\n"
               << "Recommended Route:\n";
@@ -342,7 +348,7 @@ inline void printAlternativeRoutes(const Hospital& hospital, int destId,
 
     std::cout << "\nHOSPITAL NAVIGATION RESULT - ALL AVAILABLE ROUTES\n";
     printLine();
-    std::cout << "Starting Point : " << hospital.nameOf(hospital.entranceId()) << "\n"
+    std::cout << "Starting Point : " << hospital.nameOf(routes[0].stops.front()) << "\n"
               << "Destination    : " << hospital.nameOf(destId)
               << " (" << hospital.floorName(destId) << ")\n"
               << "Routes found   : " << routes.size() << " (shortest first)\n";
@@ -384,7 +390,7 @@ inline bool showDirections(const Hospital& hospital, int destId) {
 
     // Restricted rooms are blocked, so no route can pass through them.
     auto isRestrictedRoom = [&hospital](int id) { return hospital.isRestricted(id); };
-    int start = hospital.entranceId();
+    int start = startLocation();
 
     Timer timer;
     timer.start();
@@ -445,7 +451,7 @@ inline int askForDestination(const Hospital& hospital) {
             wait(3);
             continue;
         }
-        if (id == hospital.entranceId()) {
+        if (id == startLocation()) {
             printAlreadyHere(hospital, id);
             wait(2);
             continue;
@@ -485,7 +491,7 @@ inline bool runBrowseLocations(const Hospital& hospital) {
         wait(2);
         return false;
     }
-    if (id == hospital.entranceId()) {
+    if (id == startLocation()) {
         printAlreadyHere(hospital, id);
         wait(2);
         return false;
@@ -493,18 +499,39 @@ inline bool runBrowseLocations(const Hospital& hospital) {
     return showDirections(hospital, id);
 }
 
+/* ================================== Choose Starting Location ================================== */
+inline void runChooseStart(const Hospital& hospital) {
+    clearScreen();
+    std::cout << "\n================== SET STARTING LOCATION ======================\n";
+    std::cout << "  Current start: " << hospital.nameOf(startLocation()) << "\n";
+    int id = arrowMenu("Where are you now?", browseItems(hospital));
+    if (id < 0) return;
+
+    if (hospital.isRestricted(id)) {
+        printRestricted(hospital, id);
+        wait(2);
+        return;
+    }
+    startLocation() = id;
+    std::cout << "\n  Starting location set to " << hospital.nameOf(id) << ".\n";
+    wait(2);
+}
+
 /* ================================== Main Program Loop ================================== */
 inline void runInterface(const Hospital& hospital) {
     clearScreen();
     enableAnsiOutput();
+    startLocation() = hospital.entranceId(); 
     printFrontDisplay();
     waitForAnyKey();
 
     bool running = true;
     while (running && !inputClosed()) {
         clearScreen();
-        int choice = arrowMenu("\n============================ " + TITLE + " =================================\n\n----- Choose an Option ----",
-                               {"Find Location", "Browse Locations", "How to use the system", "Exit"});
+        int choice = arrowMenu("\n============================ " + TITLE + " =================================\n\n"
+                               "  Starting from: " + hospital.nameOf(startLocation()) + "\n\n----- Choose an Option ----",
+                               {"Find Location", "Browse Locations", "Set starting location",
+                                "How to use the system", "Exit"});
 
         switch (choice) {
             case 0:
@@ -520,14 +547,16 @@ inline void runInterface(const Hospital& hospital) {
                 std::cout << "\n  Returning to the main menu...\n";
                 wait(2);
                 break;
-
             case 2:
+                runChooseStart(hospital);
+                break;
+            case 3:
                 clearScreen();
                 printHelp();
                 waitForAnyKey();
                 break;
 
-            case 3:
+            case 4:
                 running = false;
                 clearScreen();
                 printGoodbye();

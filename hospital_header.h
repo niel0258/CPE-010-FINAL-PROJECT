@@ -28,7 +28,6 @@ inline std::string toLower(std::string text) {
     return text;
 }
 
-
 class RoomInfo {
 public:
     std::string roomName;

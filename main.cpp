@@ -7,10 +7,18 @@ void createHospital(Hospital &h);
 
 int main() {
     Hospital hospital;       // the map, room information and restricted flags
+    createHospital(hospital);
     runInterface(hospital);
     return 0;
 }
 
+//Generates the simulated hospital
+void createHospital(Hospital& h){
+    buildRooms(h);
+    buildCorridors(h);
+}
+
+//Creates the hash table
 void buildRooms(Hospital& h) {
     // ==========================================
     // 1. GROUND FLOOR
@@ -106,7 +114,3 @@ void buildCorridors(Hospital& h) {
         h.addCorridor(STAIRS_2F, STAIRS_3F, 12);
 }
 
-void createHospital(Hospital& h){
-    buildRooms(h);
-    buildCorridors(h);
-}
