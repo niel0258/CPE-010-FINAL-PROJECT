@@ -5,7 +5,6 @@
 #include <cctype>
 #include <string>
 #include <unordered_map>
-
 #include "graph.h"
 
 typedef enum {
@@ -46,15 +45,9 @@ private:
     std::unordered_map<int, RoomInfo> rooms; // room id -> room information
     std::unordered_map<std::string, int> idByName; // lower-case name -> room id
 
-    void addRoom(Location id, const std::string& name, int floor, bool restricted);
-    void buildRooms();
-    void buildCorridors();
-
 public:
-    Hospital() {
-        buildRooms();
-        buildCorridors();
-    }
+    void addRoom(Location id, const std::string& name, int floor, bool restricted);
+    void addCorridor(int start, int destination, int weight);
     int locationCount() const { return LOCATION_COUNT; }
     // Where every search starts.
     int entranceId() const { return MAIN_ENTRANCE; }
@@ -67,98 +60,13 @@ public:
     int distanceBetween(int from, int to) const;
 };
 
-void inline Hospital::addRoom(Location id, const std::string& name, int floor, bool restricted) {
-        rooms.emplace(id, RoomInfo(name, floor, restricted));
-        idByName[toLower(name)] = id;
-    }
+inline void Hospital::addRoom(Location id, const std::string& name, int floor, bool restricted) {
+    rooms.emplace(id, RoomInfo(name, floor, restricted));
+    idByName[toLower(name)] = id;
+}
 
-void inline Hospital::buildRooms() {
-        // ---- Ground floor ----
-        addRoom(MAIN_ENTRANCE, "Main entrance", 1, false);
-        addRoom(LOBBY, "Lobby", 1, false);
-        addRoom(REGISTRATION, "Registration", 1, false);
-        addRoom(CASHIER, "Cashier", 1, false);
-        addRoom(PHARMACY, "Pharmacy", 1, false);
-        addRoom(ELEVATOR_G, "Elevator G", 1, false);
-        addRoom(EMERGENCY, "Emergency", 1, false);
-        addRoom(LABORATORY, "Laboratory", 1, false);
-        addRoom(XRAY, "X-ray", 1, false);
-        addRoom(STAIRS_G, "Stairs G", 1, false);
-
-        // ---- 2nd floor ----
-        addRoom(OUTPATIENT, "Outpatient", 2, false);
-        addRoom(PEDIATRICS, "Pediatrics", 2, false);
-        addRoom(OBGYN, "OB-GYN", 2, false);
-        addRoom(WARD_A, "Ward A", 2, false);
-        addRoom(WARD_B, "Ward B", 2, false);
-        addRoom(ELEVATOR_2F, "Elevator 2F", 2, false);
-        addRoom(NURSE_2F, "Nurse station 2F", 2, true); // restricted
-        addRoom(HALLWAY_2F, "Hallway 2F", 2, false);
-        addRoom(CAFETERIA, "Cafeteria", 2, false);
-        addRoom(STAIRS_2F, "Stairs 2F", 2, false);
-
-        // ---- 3rd floor ----
-        addRoom(WARD_C, "Ward C", 3, false);
-        addRoom(PRIVATE_ROOMS, "Private rooms", 3, false);
-        addRoom(ICU, "ICU", 3, true); // restricted
-        addRoom(OPERATING_ROOM, "Operating room", 3, true); // restricted
-        addRoom(RECOVERY_ROOM, "Recovery room", 3, true); // restricted
-        addRoom(ELEVATOR_3F, "Elevator 3F", 3, false);
-        addRoom(NURSE_3F, "Nurse station 3F", 3, true); // restricted
-        addRoom(HALLWAY_3F, "Hallway 3F", 3, false);
-        addRoom(LOUNGE, "Lounge", 3, false);
-        addRoom(STAIRS_3F, "Stairs 3F", 3, false);
-    }
-
-    // Corridors, weighted by walking distance in meters.
-void inline Hospital::buildCorridors() {
-        // ---- Ground floor ----
-        // top corridor
-        graph.add_edge(MAIN_ENTRANCE, LOBBY, 10);
-        graph.add_edge(LOBBY, REGISTRATION, 12);
-        graph.add_edge(REGISTRATION, CASHIER, 8);
-        graph.add_edge(CASHIER, PHARMACY, 10);
-        // bottom corridor
-        graph.add_edge(ELEVATOR_G, EMERGENCY, 15);
-        graph.add_edge(EMERGENCY, LABORATORY, 20);
-        graph.add_edge(LABORATORY, XRAY, 12);
-        graph.add_edge(XRAY, STAIRS_G, 15);
-        // links between the two corridors
-        graph.add_edge(MAIN_ENTRANCE, ELEVATOR_G, 15);
-        graph.add_edge(LOBBY, EMERGENCY, 20);
-        graph.add_edge(REGISTRATION, LABORATORY, 14);
-
-        // ---- 2nd floor ----
-        graph.add_edge(OUTPATIENT, PEDIATRICS, 10);
-        graph.add_edge(PEDIATRICS, OBGYN, 10);
-        graph.add_edge(OBGYN, WARD_A, 12);
-        graph.add_edge(WARD_A, WARD_B, 8);
-        graph.add_edge(ELEVATOR_2F, NURSE_2F, 10);
-        graph.add_edge(NURSE_2F, HALLWAY_2F, 8);
-        graph.add_edge(HALLWAY_2F, CAFETERIA, 12);
-        graph.add_edge(CAFETERIA, STAIRS_2F, 10);
-        graph.add_edge(OUTPATIENT, ELEVATOR_2F, 12);
-        graph.add_edge(OBGYN, HALLWAY_2F, 14);
-        graph.add_edge(WARD_B, STAIRS_2F, 12);
-
-        // ---- 3rd floor ----
-        graph.add_edge(WARD_C, PRIVATE_ROOMS, 8);
-        graph.add_edge(PRIVATE_ROOMS, ICU, 12);
-        graph.add_edge(ICU, OPERATING_ROOM, 10);
-        graph.add_edge(OPERATING_ROOM, RECOVERY_ROOM, 8);
-        graph.add_edge(ELEVATOR_3F, NURSE_3F, 10);
-        graph.add_edge(NURSE_3F, HALLWAY_3F, 8);
-        graph.add_edge(HALLWAY_3F, LOUNGE, 10);
-        graph.add_edge(LOUNGE, STAIRS_3F, 12);
-        graph.add_edge(WARD_C, ELEVATOR_3F, 12);
-        graph.add_edge(ICU, HALLWAY_3F, 15);
-        graph.add_edge(RECOVERY_ROOM, STAIRS_3F, 14);
-
-        // ---- Between floors ----
-        graph.add_edge(ELEVATOR_G, ELEVATOR_2F, 8);
-        graph.add_edge(ELEVATOR_2F, ELEVATOR_3F, 8);
-        graph.add_edge(STAIRS_G, STAIRS_2F, 12);
-        graph.add_edge(STAIRS_2F, STAIRS_3F, 12);
+inline void Hospital::addCorridor(int start, int destination, int distance){
+    graph.add_edge(start, destination, distance);
 }
 
 inline int Hospital::findIdByName(const std::string& name) const {
@@ -204,6 +112,5 @@ inline int Hospital::distanceBetween(int from, int to) const {
     }
     return 0;
 }
-
 
 #endif
