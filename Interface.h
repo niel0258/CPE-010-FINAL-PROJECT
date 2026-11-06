@@ -47,7 +47,7 @@ inline void printHelp() {
               << "  NOTE : Restricted areas cannot be selected and are never part of a route.\n";
 }
 
-inline void printDepartmentInfo(const DepartmentInfo& d) {
+void printDepartmentInfo(const DepartmentInfo& d) {
     std::cout << "\nLOCATION FOUND\n";
     printLine('-');
     std::cout << "  Name  : " << d.name << "\n";
@@ -56,18 +56,58 @@ inline void printDepartmentInfo(const DepartmentInfo& d) {
     printLine('-');
 }
 
-inline void printNotFound(const std::string& input) {
+void printNotFound(const std::string& input) {
     std::cout << "\n  [!] Location name is not found: \"" << input << "\"\n"
               << "      Please check the spelling and try again.\n";
 }
 
-inline void printRestricted(const DepartmentInfo& d) {
+void printRestricted(const DepartmentInfo& d) {
     std::cout << "\n  [X] RESTRICTED AREA\n"
-              << "      " << d.name << " is restricted and cannot be selected as a\n"
-              << "      destination. Please ask the front desk staff for assistance.\n";
+              << "      " << d.name << " is restricted and cannot be selected as a destination.\n"
+              << "      Please ask the front desk staff for assistance.\n";
 }
 
-inline void printNoRoute(const std::string& destName) {
+void printNoRoute(const std::string& destName) {
     std::cout << "\n  [!] No available route to " << destName << " was found.\n"
               << "      Please ask the front desk staff for assistance.\n";
+}
+
+/*  =============================================== OUTPUT ROUTE STEPS  =============================================== */
+
+void printRouteSteps(const Route& r) {
+    if (r.destination.empty()) return;
+    int step = 1;
+    std::cout << "  " << step++ << ". Start at the " << r.destination[0] << ".\n";
+    for (size_t i = 0; i + 1 < r.destination.size(); ++i) {
+        std::cout << "  " << step++ << ". Walk " << r.legMeters[i] << " meters from "
+                  << r.destination[i] << " to " << r.destination[i + 1];
+        if (i + 1 < r.floors.size() && !r.floors[i].empty() && r.floors[i] != r.floors[i + 1])
+            std::cout << " (" << r.floors[i + 1] << ")";
+        std::cout << ".\n";
+    }
+    std::cout << "  " << step << ". You have arrived at " << r.destination.back() << ".\n";
+}
+
+/* ================================== SHORTEST ROUTE ================================== */
+void printShortestRoute(const std::string& start, const DepartmentInfo& dest, const Route& r) {
+    std::cout << "\nHOSPITAL NAVIGATION RESULT - SHORTEST ROUTE\n";
+    printLine();
+    std::cout << "Starting Point : " << start << "\n"
+              << "Destination    : " << dest.name << " (" << dest.floorLabel << ")\n\n"
+              << "Recommended Route:\n";
+    printRouteSteps(r);
+    std::cout << "\nTotal Distance : " << r.totalDistance << " meters\n";
+    printLine();
+}
+
+/* ================================== ALT ROUTE ==================================*/
+
+/* ================================== Search Done ================================== */
+void printSearchComplete() { 
+    std::cout << "\n  Search complete.\n"; 
+}
+
+/* ================================== Bye Message ================================== */
+void printGoodbye() { 
+    std::cout << "\nThank you for using our System. Goodbye!\n"; 
 }
