@@ -15,6 +15,13 @@ This project simulates a route-finding system. It prompts the user for a locatio
 * **All Paths:** Traverses the graph using Depth-First Search (DFS) and sorts the paths using Quick Sort.
 * **Optimal Path:** Calculates and displays the most efficient route using Dijkstra's Algorithm.
 
+## Features
+* **Building Lookup:** Stores campus buildings in a Hash Map for fast searches by name.
+* **Campus Mapping:** Represents the campus layout as a weighted graph, where nodes are buildings (e.g., Study Hall, Anniversary Hall, PEC1) and edges are the walking distances between them.
+* **Optimal Route:** Uses **Dijkstra's Algorithm** and a priority queue to calculate the single shortest path to the destination.
+* **Alternative Routes:** Uses **Depth-First Search (DFS)** to find all possible routes, which are then sorted by total distance using the **Quick Sort** algorithm.
+* **Restricted Areas:** Safely routes around restricted or blocked locations (e.g., "Building 7 ??") by checking the restricted flag before traversing.
+
 ## Project Files
 * `main.cpp` - Main program execution.
 * `graph.h` - Graph data structure and traversal logic.
