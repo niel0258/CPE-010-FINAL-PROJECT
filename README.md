@@ -241,11 +241,11 @@ ROUTE 2 - 80 meters
 **CPE21S2 / Group 6**
 
 * **Condino, Niel Vincent**: Project Leader
-* **Esguerra, Paula**
-* **Estorco, Clint Hoven**
-* **Libo-on, Gian Carlo**
-* **Lopez, Andrei Dion**: Input and Display Interface
-* **Mendoza, Nathaniel**: Output and Display Interface
+* **Esguerra, Paula**: Documentator
+* **Estorco, Clint Hoven**: Documentator
+* **Libo-on, Gian Carlo**: Lead Programmer
+* **Lopez, Andrei Dion**: UI/UX Designer, Programmer
+* **Mendoza, Nathaniel**: UI/UX Designer, Programmer
 
 ---
 
