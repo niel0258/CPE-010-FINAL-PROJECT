@@ -102,7 +102,11 @@ inline void enableAnsiOutput() {
 // Clears screen 
 inline void clearScreen() {
     if (!isInteractiveTerminal()) return;
+#ifdef _WIN32
+    system("cls");
+#else
     system("clear");
+#endif
 }
 
 // Pauses for a set amount of time
