@@ -1,3 +1,11 @@
+<div align="center">
+  <!-- Repository Badges -->
+  <img src="https://img.shields.io/badge/Course-CPE%20010-blue?style=flat-square" alt="Course Name">
+  <img src="https://img.shields.io/badge/Section-CPE21S2-orange?style=flat-square" alt="Term">
+
+  <br />
+  <br />
+  
 # CPE-010-FINAL-PROJECT
 Emulation of route finding.
 
