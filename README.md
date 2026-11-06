@@ -123,6 +123,28 @@ flowchart TD
 
 ---
 
+## 🚀 Getting Started
+
+**Requirements:** a C++20 compiler (g++) and a terminal that supports ANSI colors and arrow keys.
+
+**Compile:** `main.cpp` includes `interface.h`, which includes the other headers, so only `main.cpp` needs to be compiled.
+```bash
+g++ -std=c++20 -O2 main.cpp -o medicompass
+```
+
+**Run:**
+```bash
+./medicompass
+```
+
+**Using the program:**
+1. Press any key on the title screen.
+2. Use **Up/Down** to move, **Enter** to select and **Esc** to go back.
+3. Choose **Find Location** and type a location name (for example, `Pharmacy`), or **Browse Locations** to pick one from a list.
+4. Choose **Shortest route** or **All possible routes**.
+
+---
+
 ## 🖥️ Sample Run
 
 A search for **Pharmacy**, choosing the **shortest route**:
