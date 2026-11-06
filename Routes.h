@@ -1,0 +1,66 @@
+#include <algorithm>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <thread>
+#include <vector>
+#include <utility>
+
+//Data Structures
+struct Unit {
+    std::string name; //unit name (departments, wards, rooms)
+    int roomNum = -1; //room number -1 is not a room
+};
+
+//Tree node
+template <typename T>
+struct TreeNode {
+    T data;
+    std::vector<std::unique_ptr<TreeNode<T>>> children; //unique_ptr automatically deletes itself
+    TreeNode(T d) : data(std::move(d)){}
+};
+
+//Insert Node
+template <typename T>
+TreeNode<T>* addChild(TreeNode<T>* parent, T data) {
+    parent->children.push_back(std::make_unique<TreeNode<T>>(std::move(data))); //moves the data 
+    return parent->children.back().get(); 
+}
+
+//DFS
+template<typename T, typename Pred>
+TreeNode<T>* DFSfind(TreeNode<T>* node, Pred pred) {
+    if (!node) return nullptr; //backtrack
+    if (pred(node->data)) return node; //if node matched, stop
+    for (auto& child : node -> children) 
+        if (auto* found = DFSfind(child.get(), pred )) return found; //search each child
+    return nullptr; //no match
+}
+
+//Quick Sort
+template <typename T, typename Compare = std::less<T>>
+void QuickSort(std::vector<T>& a, int low, int high, Compare cmp = Compare()) {
+    if (low >= high) return; 
+    T pivot = a[high]; 
+    int i = low - 1; 
+    for (int j = low; j < high; ++j)
+        if (cmp(a[j], pivot)) std::swap(a[++i], a[j]);
+    std::swap(a[i + 1], a[high]);
+    QuickSort(a, low, i, cmp);
+    QuickSort(a, i + 2, high, cmp);
+}
+
+//Binary Search
+template <typename T, typename Compare = std::less<T>>
+int binarySearch(const std::vector<T>& a, const T& target, Compare cmp = Compare()) {
+    int low = 0, high = (int)a.size() - 1;
+    while (low <= high) {
+        int mid = low + (high - low) / 2;
+        if (cmp(a[mid], target))      low = mid + 1;
+        else if (cmp(target, a[mid])) high = mid - 1;
+        else return mid;
+    }
+    return -1;
+}
