@@ -9,17 +9,16 @@
 
 struct DepartmentInfo {
     int         id = -1;          // location id used by the graph
-    std::string code;             // empty = no code assigned yet
     std::string name;
     std::string floorLabel;       // e.g. "2nd floor"
     bool        restricted = false;
 };
 
 struct Route {
-    std::vector<std::string> stops;
+    std::vector<std::string> destination;
     std::vector<std::string> floors;
-    std::vector<int>         legMeters;
-    int                      totalMeters = 0;
+    std::vector<int>         distances; // IN METERS
+    int                      totalDistance = 0; // IN METERS
 };
 
 const size_t MAX_ROUTES_SHOWN = 10;
