@@ -47,7 +47,7 @@ struct Timer {
     }
 };
 
-const size_t MAX_ROUTES_SHOWN = 10;
+const size_t MAX_ROUTES_SHOWN = 50;
 
 /*  =============================================== INPUT  =============================================== */
 
@@ -97,7 +97,7 @@ inline void enableAnsiOutput() {
 // Clears screen 
 inline void clearScreen() {
     if (!isInteractiveTerminal()) return;
-    std::cout << "\033[3J\033[2J\033[H" << std::flush;   // 3J = scrollback, 2J = screen, H = home
+    system("clear");
 }
 
 // Pauses for a set amount of time
@@ -185,34 +185,6 @@ inline bool askYesNo(const std::string& question) {
     }
 }
 
-// Menu used when arrow keys are not available: the user types the item number.
-// Returns the chosen index, or -1 for "back" (0) or when the input ends.
-inline int numberedMenu(const std::vector<std::string>& items) {
-    for (size_t i = 0; i < items.size(); ++i) {
-        std::cout << "  " << (i + 1) << ". " << items[i] << "\n";
-    }
-
-    while (true) {
-        std::cout << "  Enter a number (0 = back): ";
-        std::string answer;
-        if (!readLine(answer)) return -1;
-        answer = trim(answer);
-
-        if (answer == "0") return -1;
-
-        bool onlyDigits = !answer.empty() && answer.size() <= 3 &&
-                          std::all_of(answer.begin(), answer.end(),
-                                      [](unsigned char c) { return std::isdigit(c) != 0; });
-        if (onlyDigits) {
-            int number = std::stoi(answer);
-            if (number >= 1 && number <= static_cast<int>(items.size())) {
-                return number - 1;
-            }
-        }
-        std::cout << "  Invalid choice.\n";
-    }
-}
-
 // Draws the visible rows of the menu. Returns how many lines it printed,
 // so the caller can move the cursor back up and draw again.
 inline int drawMenu(const std::vector<std::string>& items, int selected, int top, int rows) {
@@ -220,7 +192,7 @@ inline int drawMenu(const std::vector<std::string>& items, int selected, int top
         std::cout << "\r\033[2K" << (i == selected ? "  > " : "    ") << items[i] << "\n";
     }
     std::cout << "\r\033[2K  [" << (selected + 1) << "/" << items.size()
-              << "]  Up/Down = move, Enter = select, Esc = back\n";
+              << "]  Up/Down = Move, Enter = select, Esc = back\n";
     return rows + 1;
 }
 
@@ -230,13 +202,11 @@ inline int arrowMenu(const std::string& title, const std::vector<std::string>& i
     std::cout << title << "\n";
     if (items.empty()) return -1;
 
-    if (!isInteractiveTerminal()) return numberedMenu(items);
-
-    const int totalItems  = static_cast<int>(items.size());
+    const int totalItems = static_cast<int>(items.size());
     const int visibleRows = std::min(10, totalItems);   // long lists scroll
 
-    int selected   = 0;   // highlighted item
-    int top        = 0;   // first item currently on screen
+    int selected = 0;   // highlighted item
+    int top = 0;   // first item currently on screen
     int linesDrawn = 0;
 
     while (true) {
@@ -254,32 +224,41 @@ inline int arrowMenu(const std::string& title, const std::vector<std::string>& i
             return -1;
         }
 
-        if (key == Key::Up)   selected = (selected - 1 + totalItems) % totalItems;
-        if (key == Key::Down) selected = (selected + 1) % totalItems;
+        if (key == Key::Up) {
+            selected = (selected - 1 + totalItems) % totalItems;
+        }
+        if (key == Key::Down){ 
+            selected = (selected + 1) % totalItems;
+        }
 
         // keep the highlighted item inside the visible window
-        if (selected < top)                 top = selected;
-        if (selected >= top + visibleRows)  top = selected - visibleRows + 1;
+        if (selected < top){
+            top = selected;
+        }
+        if (selected >= top + visibleRows) { 
+            top = selected - visibleRows + 1;
+        }
     }
 }
 
 /*  =============================================== OUTPUT  =============================================== */
 
-inline void printLine(char c = '=', int n = 56) {
+const std::string TITLE = "MEDICOMPASS";
+
+inline void printLine(char c = '=', int n = 77) {
     std::cout << std::string(n, c) << "\n";
 }
 
 inline void printFrontDisplay() {
     printLine();
-    std::cout << "                      Welcome to Hospital\n"
-              << "        This is a Directional Guidance System\n";
+    std::cout << "\t\t\t   " << TITLE << "\n" << "\t\tHospital Directional Guidance System\n";
     printLine();
-    std::cout << "  Find your path to any hospital location.\n";
+    std::cout << "\t\tFind your way to any hospital location.\n";
     printLine();
 }
 
 inline void printHelp() {
-    std::cout << "\n=== HOW TO USE THE SYSTEM ===\n"
+    std::cout << "\n======================= HOW TO USE THE SYSTEM ===========================\n\n"
               << "  Use the Up/Down arrow keys to move, Enter to select, Esc to go back.\n"
               << "  Find Location    : Type the location NAME (example: Pharmacy). Type 'back' to return.\n"
               << "  Browse Locations : Scroll through every location and pick one.\n"
@@ -405,15 +384,13 @@ inline bool showDirections(const Hospital& hospital, int destId) {
 
     // Restricted rooms are blocked, so no route can pass through them.
     auto isRestrictedRoom = [&hospital](int id) { return hospital.isRestricted(id); };
-    const Graph& graph = hospital.getGraph();
     int start = hospital.entranceId();
 
     Timer timer;
     timer.start();
 
     if (choice == 0) {
-        // Dijkstra: the single best route
-        Route best = shortestRoute(graph, start, destId, isRestrictedRoom);
+        Route best = shortestRoute(hospital, start, destId);
         double searchMs = timer.elapsedMs();
 
         if (best.stops.empty()) {
@@ -423,12 +400,10 @@ inline bool showDirections(const Hospital& hospital, int destId) {
         printShortestRoute(hospital, destId, best);
         printSearchComplete(searchMs);
     } else {
-        // DFS: every route, then quick sort so the shortest is first
         std::vector<Route> routes;
         std::vector<int> path;
-        DFSRoutes(graph, start, destId, path, 0, routes, isRestrictedRoom);
-        QuickSort(routes, 0, static_cast<int>(routes.size()) - 1,
-                  [](const Route& a, const Route& b) { return a.distance < b.distance; });
+        DFSRoutes(hospital, start, destId, path, 0, routes);
+        QuickSort(routes, 0, static_cast<int>(routes.size()) - 1);
         double searchMs = timer.elapsedMs();
 
         if (routes.empty()) {
@@ -443,22 +418,20 @@ inline bool showDirections(const Hospital& hospital, int destId) {
 
 /* ================================== Typing a Destination ================================== */
 
-// Keeps asking until the user types a valid, open location, or types 'back'.
-// Returns the location id, or -1 when the user went back.
 inline int askForDestination(const Hospital& hospital) {
-    std::cout << "\n=== FIND LOCATION ===\n";
+    std::cout << "\n============ FIND LOCATION ======================\n";
 
     while (true) {
         clearScreen();
         std::cout << "  Type a location name (example: Pharmacy), or 'back' to return: ";
         std::string input;
-        if (!readLine(input)) return -1;   // input ended
+        if (!readLine(input)) return -1;
 
         input = trim(input);
         if (input.empty()) continue;
         if (toLower(input) == "back") return -1;
 
-        int id = hospital.findIdByName(input);   // hash map lookup
+        int id = hospital.findIdByName(input);
         if (id < 0) {
             printNotFound(input);
             wait(2);
@@ -491,13 +464,10 @@ inline bool runFindLocation(const Hospital& hospital) {
 
 /* ================================== Browsing a Location Menu ================================== */
 
-// Build the browse list: one row per location, with its floor.
 inline std::vector<std::string> browseItems(const Hospital& hospital) {
     std::vector<std::string> items;
     for (int id = 0; id < hospital.locationCount(); ++id) {
         std::string floor = hospital.floorName(id);
-        if (floor.size() < 12) floor.resize(12, ' ');   // align the columns
-
         items.push_back(floor + " | " + hospital.nameOf(id) +
                         (hospital.isRestricted(id) ? "  [Restricted]" : ""));
     }
@@ -506,9 +476,9 @@ inline std::vector<std::string> browseItems(const Hospital& hospital) {
 
 inline bool runBrowseLocations(const Hospital& hospital) {
     clearScreen();
-    std::cout << "\n=== BROWSE LOCATIONS ===\n";
-    int id = arrowMenu("Select a location:", browseItems(hospital));   // menu row = location id
-    if (id < 0) return false;   // Esc = back
+    std::cout << "\n================== BROWSE LOCATIONS ======================\n";
+    int id = arrowMenu("Select a location:", browseItems(hospital));
+    if (id < 0) return false;
 
     if (hospital.isRestricted(id)) {
         printRestricted(hospital, id);
@@ -525,6 +495,7 @@ inline bool runBrowseLocations(const Hospital& hospital) {
 
 /* ================================== Main Program Loop ================================== */
 inline void runInterface(const Hospital& hospital) {
+    clearScreen();
     enableAnsiOutput();
     printFrontDisplay();
     waitForAnyKey();
@@ -532,41 +503,41 @@ inline void runInterface(const Hospital& hospital) {
     bool running = true;
     while (running && !inputClosed()) {
         clearScreen();
-        int choice = arrowMenu("\n=== MAIN MENU ===",
+        int choice = arrowMenu("\n============================ " + TITLE + " =================================\n\n----- Choose an Option ----",
                                {"Find Location", "Browse Locations", "How to use the system", "Exit"});
 
         switch (choice) {
-            case 0:   // Find Location
+            case 0:
                 while (runFindLocation(hospital) && !inputClosed() &&
                        askYesNo("\nSearch for another location?")) { }
                 std::cout << "\n  Returning to the main menu...\n";
                 wait(2);
                 break;
 
-            case 1:   // Browse Locations
+            case 1:
                 while (runBrowseLocations(hospital) && !inputClosed() &&
                        askYesNo("\nBrowse another location?")) { }
                 std::cout << "\n  Returning to the main menu...\n";
                 wait(2);
                 break;
 
-            case 2:   // Help
+            case 2:
+                clearScreen();
                 printHelp();
                 waitForAnyKey();
                 break;
 
-            case 3:   // Exit
+            case 3:
                 running = false;
                 clearScreen();
                 printGoodbye();
                 wait(2);
                 break;
 
-            default:  // Esc on the main menu: just show it again
+            default:
                 break;
         }
     }
-    printGoodbye();
 }
 
 #endif

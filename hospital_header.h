@@ -179,7 +179,7 @@ inline int Hospital::floorNumber(int id) const {
     return found->second.floorNum;
 }
 
-std::string Hospital::floorName(int id) const {
+inline std::string Hospital::floorName(int id) const {
     switch (floorNumber(id)) {
         case 1: return "Ground floor";
         case 2: return "2nd floor";
