@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "hospital_header.h"   // Hospital: graph, hash maps, names, floors, restricted flags
-#include "Routes.h"            // Route, QuickSort, DFSRoutes, shortestRoute
+#include "routes.h"            // Route, QuickSort, DFSRoutes, shortestRoute
 
 #ifdef _WIN32
     #ifndef NOMINMAX
